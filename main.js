@@ -7,13 +7,13 @@ const generateId = function () {
   return +new Date();
 };
 
-const generateBookObject = function (id, title, author, year, isCompleted) {
+const generateBookObject = function (id, title, author, year, isComplete) {
   return {
     id,
     title,
     author,
     year,
-    isCompleted,
+    isComplete,
   };
 };
 
@@ -48,7 +48,7 @@ const loadDataStorage = function () {
 };
 
 const makeBook = function (bookObjek) {
-  const { id, title, author, year, isCompleted } = bookObjek;
+  const { id, title, author, year, isComplete } = bookObjek;
   const textTitle = document.createElement("h3");
   textTitle.innerText = title;
   const textAuthor = document.createElement("p");
@@ -60,7 +60,7 @@ const makeBook = function (bookObjek) {
   container.classList.add("book_item");
   container.append(textTitle, textAuthor, yearBook);
 
-  if (isCompleted) {
+  if (isComplete) {
     const bucket = document.createElement("div");
     const btnUndo = document.createElement("button");
     bucket.classList.add("action");
@@ -115,9 +115,15 @@ const addBook = function () {
   const title = document.getElementById("inputBookTitle").value;
   const author = document.getElementById("inputBookAuthor").value;
   const year = document.getElementById("inputBookYear").value;
-  const isCompleted = document.getElementById("inputBookIsComplete").checked;
+  const isComplete = document.getElementById("inputBookIsComplete").checked;
   const id = generateId();
-  const bookObjek = generateBookObject(id, title, author, year, isCompleted);
+  const bookObjek = generateBookObject(
+    id,
+    title,
+    author,
+    parseInt(year),
+    isComplete
+  );
 
   books.push(bookObjek);
   document.dispatchEvent(new Event(RENDER_EVENT));
@@ -129,7 +135,7 @@ const taskBookCompleted = function (bookId) {
   const bookTarget = findBook(bookId);
 
   bookTarget || "Not Found";
-  bookTarget.isCompleted = true;
+  bookTarget.isComplete = true;
   document.dispatchEvent(new Event(RENDER_EVENT));
 
   saveData();
@@ -159,7 +165,7 @@ const undoBookFromCompleted = function (bookId) {
   const bookTarget = findBook(bookId);
   if (bookTarget == null) return;
 
-  bookTarget.isCompleted = false;
+  bookTarget.isComplete = false;
   document.dispatchEvent(new Event(RENDER_EVENT));
   saveData();
 };
@@ -176,6 +182,7 @@ const removeBookFromCompleted = function (id) {
 
 document.addEventListener("DOMContentLoaded", () => {
   const submitForm = document.getElementById("inputBook");
+  const btnAdd = document.getElementById("bookSubmit");
 
   submitForm.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -186,20 +193,18 @@ document.addEventListener("DOMContentLoaded", () => {
   if (isStorageExist()) {
     loadDataStorage();
   }
-});
-
-document.addEventListener(SAVED_EVENT, () => {
-  // console.log(localStorage.getItem(STORAGE_KEY));
-  const key = localStorage.getItem(STORAGE_KEY);
-  const btnAdd = document.getElementById("bookSubmit");
 
   btnAdd.addEventListener("click", () => {
-    alert("Data berhasil ditambahkan");
+    alert("Buku baru berhasil ditambahkan");
   });
 });
 
+document.addEventListener(SAVED_EVENT, () => {
+  localStorage.getItem(STORAGE_KEY);
+});
+
 document.addEventListener(RENDER_EVENT, () => {
-  //   console.log(books);
+  // console.log(books);
   const inCompletedBook = document.getElementById("incompleteBookshelfList");
   const iscompletedBook = document.getElementById("completeBookshelfList");
   inCompletedBook.innerHTML = "";
@@ -207,7 +212,7 @@ document.addEventListener(RENDER_EVENT, () => {
 
   for (const bookItem of books) {
     const bookElement = makeBook(bookItem);
-    if (bookItem.isCompleted) {
+    if (bookItem.isComplete) {
       iscompletedBook.classList.add("book_list");
       iscompletedBook.append(bookElement);
     } else {
@@ -231,7 +236,9 @@ const clearInput = function () {
 
 const searchBook = function (e) {
   e.preventDefault();
-  const inputSearch = document.getElementById("searchBookTitle").value.toLowerCase();
+  const inputSearch = document
+    .getElementById("searchBookTitle")
+    .value.toLowerCase();
   const listBook = document.querySelectorAll(".book_item > h3");
 
   for (const book of listBook) {
